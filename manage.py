@@ -41,8 +41,9 @@ def drive(cfg, model_path=None, use_joystick=False):
     #Initialize car
     V = dk.vehicle.Vehicle()
     cam = dk.parts.PiCamera(resolution=cfg.CAMERA_RESOLUTION)
-    V.add(cam, outputs=['cam/image_array'], threaded=True)
-    
+    slicer = dk.parts.slicer()
+    V.add(cam, outputs=['cam/image_array_full'], threaded=True)
+    V.add(slicer,input=['cam/image_array_full'], outputs=['cam/image_array_top','cam/image_array_bot'], threaded=True)
     if use_joystick or cfg.USE_JOYSTICK_AS_DEFAULT:
         #modify max_throttle closer to 1.0 to have more power
         #modify steering_scale lower than 1.0 to have less responsive steering
@@ -56,7 +57,7 @@ def drive(cfg, model_path=None, use_joystick=False):
 
     
     V.add(ctr, 
-          inputs=['cam/image_array'],
+          inputs=['cam/image_array_top','cam/image_array_bot',cam/],
           outputs=['user/angle', 'user/throttle', 'user/mode', 'recording'],
           threaded=True)
     
@@ -76,7 +77,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     if model_path:
         kl.load(model_path)
     
-    V.add(kl, inputs=['cam/image_array'], 
+    V.add(kl, inputs=['cam/image_array_top','cam/image_array_bot'], 
           outputs=['pilot/angle', 'pilot/throttle'],
           run_condition='run_pilot')
     
@@ -116,7 +117,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     V.add(throttle, inputs=['throttle'])
     
     #add tub to save data
-    inputs=['cam/image_array',
+    inputs=['cam/image_array_top','cam/image_array_bot',
             'user/angle', 'user/throttle', 
             'user/mode']
     types=['image_array',
@@ -168,7 +169,7 @@ def train(cfg, tub_names, model_name):
     use the specified data in tub_names to train an artifical neural network
     saves the output trained model as model_name
     '''
-    X_keys = ['cam/image_array']
+    X_keys = ['cam/image_array_top','cam/image_array_bot']
     y_keys = ['user/angle', 'user/throttle']
     
     def rt(record):
