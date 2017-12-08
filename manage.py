@@ -43,7 +43,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     cam = dk.parts.PiCamera(resolution=cfg.CAMERA_RESOLUTION)
     slicer = dk.parts.slicer()
     V.add(cam, outputs=['cam/image_array_full'], threaded=True)
-    V.add(slicer,input=['cam/image_array_full'], outputs=['cam/image_array_top','cam/image_array_bot'], threaded=True)
+    V.add(slicer,inputs=['cam/image_array_full'], outputs=['cam/image_array_top','cam/image_array_bot'], threaded=False)
     if use_joystick or cfg.USE_JOYSTICK_AS_DEFAULT:
         #modify max_throttle closer to 1.0 to have more power
         #modify steering_scale lower than 1.0 to have less responsive steering
@@ -57,7 +57,7 @@ def drive(cfg, model_path=None, use_joystick=False):
 
     
     V.add(ctr, 
-          inputs=['cam/image_array_top','cam/image_array_bot',cam/],
+          inputs=['cam/image_array_top'],#,'cam/image_array_bot'],
           outputs=['user/angle', 'user/throttle', 'user/mode', 'recording'],
           threaded=True)
     
@@ -77,7 +77,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     if model_path:
         kl.load(model_path)
     
-    V.add(kl, inputs=['cam/image_array_top','cam/image_array_bot'], 
+    V.add(kl, inputs=['cam/image_array_top'],#,'cam/image_array_bot'], 
           outputs=['pilot/angle', 'pilot/throttle'],
           run_condition='run_pilot')
     
@@ -120,7 +120,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     inputs=['cam/image_array_top','cam/image_array_bot',
             'user/angle', 'user/throttle', 
             'user/mode']
-    types=['image_array',
+    types=['image_array','image_array',
            'float', 'float',  
            'str']
     
