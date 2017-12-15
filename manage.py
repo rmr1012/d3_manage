@@ -41,7 +41,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     #Initialize car
     V = dk.vehicle.Vehicle()
     cam = dk.parts.PiCamera(resolution=cfg.CAMERA_RESOLUTION)
-    slicer = dk.parts.slicer()
+    slicer = dk.parts.slicer(partition=cfg.SLICER_PARTITION)
     V.add(cam, outputs=['cam/image_array_full'], threaded=True)
     V.add(slicer,inputs=['cam/image_array_full'], outputs=['cam/image_array_top','cam/image_array_bot'], threaded=False)
     if use_joystick or cfg.USE_JOYSTICK_AS_DEFAULT:
